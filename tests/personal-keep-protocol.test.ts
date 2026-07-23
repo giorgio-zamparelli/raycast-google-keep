@@ -16,6 +16,30 @@ describe("parseBridgeResponse", () => {
     ]);
   });
 
+  it("reads aggregate metadata after a successful Root Search mirror sync", () => {
+    const response = parseBridgeResponse(
+      JSON.stringify({
+        version: 1,
+        ok: true,
+        mirror: {
+          directory: "/Users/example/Google Keep Search",
+          notes: 4,
+          written: 2,
+          removed: 1,
+          unchanged: 2,
+        },
+      }),
+    );
+
+    expect(response.mirror).toEqual({
+      directory: "/Users/example/Google Keep Search",
+      notes: 4,
+      written: 2,
+      removed: 1,
+      unchanged: 2,
+    });
+  });
+
   it("turns a safe bridge error into a typed error", () => {
     expect(() =>
       parseBridgeResponse(

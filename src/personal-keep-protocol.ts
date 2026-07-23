@@ -23,6 +23,14 @@ export interface PersonalKeepNote extends PersonalKeepNotePreview {
   truncated: boolean;
 }
 
+export interface PersonalKeepMirrorResult {
+  directory: string;
+  notes: number;
+  written: number;
+  removed: number;
+  unchanged: number;
+}
+
 interface BridgeErrorPayload {
   code?: string;
   message?: string;
@@ -35,6 +43,7 @@ interface BridgeResponse {
   status?: PersonalKeepStatus;
   notes?: PersonalKeepNotePreview[];
   note?: PersonalKeepNote;
+  mirror?: PersonalKeepMirrorResult;
   disconnected?: boolean;
 }
 

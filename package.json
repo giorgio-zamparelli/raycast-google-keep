@@ -72,6 +72,13 @@
       "mode": "view"
     },
     {
+      "name": "sync-personal-keep-to-root-search",
+      "title": "Sync Personal Keep to Root Search",
+      "subtitle": "Google Keep · Experimental",
+      "description": "Write an opt-in local Markdown mirror so personal Keep notes can appear in Raycast Root Search.",
+      "mode": "view"
+    },
+    {
       "name": "search-google-keep-in-browser",
       "title": "Search Google Keep in Browser",
       "subtitle": "Google Keep",

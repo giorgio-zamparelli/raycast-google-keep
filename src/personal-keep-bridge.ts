@@ -6,6 +6,7 @@ import { join } from "node:path";
 import {
   parseBridgeResponse,
   PersonalKeepBridgeError,
+  type PersonalKeepMirrorResult,
   type PersonalKeepNote,
   type PersonalKeepNotePreview,
   type PersonalKeepStatus,
@@ -13,12 +14,16 @@ import {
 import type { PersonalKeepPreferences } from "./types";
 
 const BRIDGE_TIMEOUT_MS = 60_000;
+const MIRROR_TIMEOUT_MS = 300_000;
 const MAX_OUTPUT_BYTES = 4_000_000;
+
+type BridgeOperation = "status" | "disconnect" | "search" | "get" | "sync-mirror" | "clear-mirror";
 
 interface BridgeResult {
   status?: PersonalKeepStatus;
   notes?: PersonalKeepNotePreview[];
   note?: PersonalKeepNote;
+  mirror?: PersonalKeepMirrorResult;
   disconnected?: boolean;
 }
 
@@ -40,7 +45,7 @@ function expandHome(value: string): string {
   return value;
 }
 
-function runBridge(operation: "status" | "disconnect" | "search" | "get", request?: object): Promise<BridgeResult> {
+function runBridge(operation: BridgeOperation, request?: object): Promise<BridgeResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(pythonPath(), [bridgePath(), operation], {
       stdio: ["pipe", "pipe", "pipe"],
@@ -58,10 +63,13 @@ function runBridge(operation: "status" | "disconnect" | "search" | "get", reques
       handler();
     };
 
-    const timeout = setTimeout(() => {
-      timedOut = true;
-      child.kill();
-    }, BRIDGE_TIMEOUT_MS);
+    const timeout = setTimeout(
+      () => {
+        timedOut = true;
+        child.kill();
+      },
+      operation === "sync-mirror" ? MIRROR_TIMEOUT_MS : BRIDGE_TIMEOUT_MS,
+    );
 
     child.stdout.on("data", (chunk: Buffer) => {
       outputSize += chunk.length;
@@ -100,7 +108,7 @@ function runBridge(operation: "status" | "disconnect" | "search" | "get", reques
           reject(
             new PersonalKeepBridgeError(
               "timeout",
-              "The private Google Keep sync did not finish within one minute. Check your connection and retry.",
+              "The private Google Keep operation did not finish in time. Check your connection and retry.",
             ),
           );
           return;
@@ -161,12 +169,42 @@ export async function disconnectPersonalKeep(): Promise<void> {
   await runBridge("disconnect");
 }
 
+export async function syncPersonalKeepMirror(): Promise<PersonalKeepMirrorResult> {
+  const response = await runBridge("sync-mirror");
+
+  if (!response.mirror) {
+    throw new PersonalKeepBridgeError(
+      "invalid-response",
+      "The local companion did not return the Root Search mirror status.",
+    );
+  }
+
+  return response.mirror;
+}
+
+export async function clearPersonalKeepMirror(): Promise<PersonalKeepMirrorResult> {
+  const response = await runBridge("clear-mirror");
+
+  if (!response.mirror) {
+    throw new PersonalKeepBridgeError(
+      "invalid-response",
+      "The local companion did not return the Root Search mirror status.",
+    );
+  }
+
+  return response.mirror;
+}
+
 export function personalKeepConnectCommand(): string {
   return `${shellQuote(pythonPath())} ${shellQuote(bridgePath())} connect`;
 }
 
 export function isPersonalKeepBridgeAvailable(): boolean {
   return existsSync(bridgePath());
+}
+
+export function personalKeepMirrorDirectory(): string {
+  return join(homedir(), "Google Keep Search");
 }
 
 function shellQuote(value: string): string {
