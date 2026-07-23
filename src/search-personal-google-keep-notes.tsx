@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import PersonalNoteDetail from "./personal-note-detail";
 import { searchPersonalKeepNotes } from "./personal-keep-bridge";
 import { bridgeErrorDescription } from "./personal-keep-protocol";
+import { initialPersonalKeepQuery } from "./personal-keep-query";
 import SetupPersonalGoogleKeep from "./setup-personal-google-keep";
 import { googleKeepSearchUrl } from "./google-keep-url";
 
@@ -19,7 +20,7 @@ export default function SearchPersonalGoogleKeepNotes({
   arguments: { query: argumentQuery },
   fallbackText,
 }: SearchPersonalGoogleKeepNotesProps) {
-  const [query, setQuery] = useState(argumentQuery ?? fallbackText ?? "");
+  const [query, setQuery] = useState(() => initialPersonalKeepQuery(argumentQuery, fallbackText));
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const { data: notes, error, isLoading, revalidate } = usePromise(searchPersonalKeepNotes, [debouncedQuery]);
 

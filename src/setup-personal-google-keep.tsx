@@ -20,6 +20,7 @@ import { bridgeErrorDescription } from "./personal-keep-protocol";
 import { googleKeepSearchUrl } from "./google-keep-url";
 
 const GKEEPAPI_DOCUMENTATION_URL = "https://gkeepapi.readthedocs.io/en/latest/";
+const RAYCAST_FALLBACK_COMMANDS_URL = "https://manual.raycast.com/settings#fallback-commands";
 
 export default function SetupPersonalGoogleKeep() {
   const { data: status, error, isLoading, revalidate } = usePromise(getPersonalKeepStatus, []);
@@ -87,6 +88,11 @@ export default function SetupPersonalGoogleKeep() {
             url={GKEEPAPI_DOCUMENTATION_URL}
           />
           <Action.OpenInBrowser
+            title="Read Root Search Fallback Setup"
+            icon={Icon.MagnifyingGlass}
+            url={RAYCAST_FALLBACK_COMMANDS_URL}
+          />
+          <Action.OpenInBrowser
             title="Use Google Keep Browser Search"
             icon={Icon.Globe}
             url={googleKeepSearchUrl("")}
@@ -109,7 +115,7 @@ function setupMarkdown(status: NonNullable<Awaited<ReturnType<typeof getPersonal
   ].join("\n");
 
   if (status.configured) {
-    return `# Personal Google Keep POC is connected\n\nThis local, experimental bridge is ready to search your personal Google Keep notes.\n\n${prerequisites}\n\nUse **Search Personal Google Keep Notes** to test it. Disconnect removes the saved credential and device ID from macOS Keychain.`;
+    return `# Personal Google Keep POC is connected\n\nThis local, experimental bridge is ready to search your personal Google Keep notes.\n\n${prerequisites}\n\n## Use it from Root Search\n\n1. Open Raycast Settings → **Launcher** → **Fallback Commands**.\n2. Add **Search Personal Google Keep Notes** and place it first (or make it the only fallback).\n3. Press ⌘Space, type a query such as \`DodoDentist LLC\`, then press Return.\n\nRaycast passes that root-search text to this command, which then shows matching Keep notes. Fallback commands appear only when the root query has no normal Raycast match; Raycast extensions cannot add individual notes directly to the native root-result list.\n\nDisconnect removes the saved credential and device ID from macOS Keychain.`;
   }
 
   if (

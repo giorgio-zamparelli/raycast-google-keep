@@ -67,7 +67,15 @@ To remove local access, run **Set up Personal Google Keep POC** and choose **Dis
 
 Run **Search Personal Google Keep Notes** and type a query such as `DodoDentist LLC`. The local companion refreshes from Keep, performs case-insensitive matching over title and text locally, returns only result previews to Raycast, and fetches full note text only after you select a result.
 
-Set this command as a Raycast fallback command after setup if you want an unmatched root search such as `DodoDentist LLC` to open the matching personal notes.
+### Use it from Root Search
+
+To make ⌘Space → `DodoDentist LLC` → Return open its matching Keep results:
+
+1. Open **Raycast Settings → Launcher → Fallback Commands**.
+2. Add **Search Personal Google Keep Notes** and place it first (or make it the only fallback).
+3. Press ⌘Space, type `DodoDentist LLC`, then press Return.
+
+Raycast sends the root-search text to the command as its fallback text, so the Keep result list opens already searched. Fallback commands appear only when Root Search has no normal match. Raycast's public extension API does not permit a third-party extension to insert live individual note rows directly among the native Root Search suggestions.
 
 ## Workspace setup (official API)
 
