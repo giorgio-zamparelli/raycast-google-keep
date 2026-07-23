@@ -57,10 +57,11 @@ Run **Set up Personal Google Keep POC**. Once it reports the prerequisites are r
 1. Choose **Copy Secure Connect Command**.
 2. Paste and run that command in a Terminal window.
 3. Read the warning and type `I UNDERSTAND`.
-4. Enter your Google email and an already-obtained **gkeepapi master token** at the hidden prompt.
-5. Return to Raycast and choose **Refresh Setup Status**.
+4. From the upstream `gpsoauth.exchange_token` response, retain both the **`Token`** value (the gkeepapi master token) and the 16-character lowercase Android ID used for the exchange. Do not use the response's `Auth` value.
+5. Enter your Google email, the master token, and that **same** Android device ID at the hidden Terminal prompts.
+6. Return to Raycast and choose **Refresh Setup Status**.
 
-The project intentionally does not obtain the token for you. Follow the [gkeepapi authentication documentation](https://gkeepapi.readthedocs.io/en/latest/) at your own risk; the token must be a master token, not a raw browser OAuth cookie.
+The project intentionally does not obtain the token for you. Follow the [gkeepapi authentication documentation](https://gkeepapi.readthedocs.io/en/latest/) at your own risk; the token must be the `Token` value from the master-token response, not a raw browser OAuth cookie or its `Auth` field.
 
 To remove local access, run **Set up Personal Google Keep POC** and choose **Disconnect Personal Keep**. This deletes exactly the POC's Keychain items. It does **not** delete an existing Root Search mirror; remove that separately with **Sync Personal Keep to Root Search**. If a token may have leaked, also revoke or secure the account through Google Account security controls.
 

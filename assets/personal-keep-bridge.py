@@ -53,6 +53,7 @@ MIRROR_NOTE_BYTES_LIMIT = 500_000
 MIRROR_TOTAL_BYTES_LIMIT = 100_000_000
 MIRROR_FILE_BYTES_LIMIT = 600_000
 MIRROR_MANIFEST_BYTES_LIMIT = 16_000_000
+DEVICE_ID_PATTERN = re.compile(r"[0-9a-f]{16}")
 
 
 class BridgeError(Exception):
@@ -1404,6 +1405,37 @@ def prompt(message: str) -> str:
     return input()
 
 
+def connection_device_id(
+    entered_device_id: str,
+    *,
+    email: str,
+    existing_email: Optional[str],
+    saved_device_id: Optional[str],
+) -> str:
+    """Select the Android identity associated with a master-token exchange."""
+    if entered_device_id:
+        if not DEVICE_ID_PATTERN.fullmatch(entered_device_id):
+            raise BridgeError(
+                "invalid-device-id",
+                "The Android device ID must be exactly 16 lowercase hexadecimal characters.",
+            )
+        return entered_device_id
+
+    if existing_email == email and saved_device_id:
+        if not DEVICE_ID_PATTERN.fullmatch(saved_device_id):
+            raise BridgeError(
+                "invalid-device-id",
+                "The saved Android device ID is invalid. Enter the 16-character ID used to obtain the master token.",
+            )
+        return saved_device_id
+
+    raise BridgeError(
+        "missing-device-id",
+        "Enter the 16-character Android device ID used to obtain the master token. "
+        "A new personal Keep connection cannot safely generate a different one.",
+    )
+
+
 def connect() -> int:
     require_supported_python()
     dependencies = dependency_status()
@@ -1438,7 +1470,16 @@ def connect() -> int:
         raise BridgeError("missing-token", "No master token was entered.")
 
     existing_email = keyring.get_password(ACTIVE_ACCOUNT_SERVICE, ACTIVE_ACCOUNT_NAME)
-    device_id = keyring.get_password(DEVICE_ID_SERVICE, ACTIVE_ACCOUNT_NAME) or secrets.token_hex(8)
+    saved_device_id = keyring.get_password(DEVICE_ID_SERVICE, ACTIVE_ACCOUNT_NAME)
+    entered_device_id = prompt(
+        "Android device ID used to obtain the master token (16 lowercase hex; press Return only to reuse this account's saved ID): "
+    ).strip()
+    device_id = connection_device_id(
+        entered_device_id,
+        email=email,
+        existing_email=existing_email,
+        saved_device_id=saved_device_id,
+    )
 
     try:
         keyring.set_password(TOKEN_SERVICE, email, master_token)

@@ -84,6 +84,49 @@ class PersonalKeepBridgeTest(unittest.TestCase):
         finally:
             BRIDGE.sys.stdin = original_stdin
 
+    def test_connection_device_id_uses_the_explicit_exchange_device_id(self):
+        self.assertEqual(
+            BRIDGE.connection_device_id(
+                "0123456789abcdef",
+                email="person@example.com",
+                existing_email=None,
+                saved_device_id=None,
+            ),
+            "0123456789abcdef",
+        )
+
+    def test_connection_device_id_reuses_only_the_same_accounts_saved_id(self):
+        self.assertEqual(
+            BRIDGE.connection_device_id(
+                "",
+                email="person@example.com",
+                existing_email="person@example.com",
+                saved_device_id="fedcba9876543210",
+            ),
+            "fedcba9876543210",
+        )
+
+        with self.assertRaises(BRIDGE.BridgeError) as raised:
+            BRIDGE.connection_device_id(
+                "",
+                email="second@example.com",
+                existing_email="person@example.com",
+                saved_device_id="fedcba9876543210",
+            )
+
+        self.assertEqual(raised.exception.code, "missing-device-id")
+
+    def test_connection_device_id_rejects_an_invalid_id(self):
+        with self.assertRaises(BRIDGE.BridgeError) as raised:
+            BRIDGE.connection_device_id(
+                "ABCDEF0123456789",
+                email="person@example.com",
+                existing_email=None,
+                saved_device_id=None,
+            )
+
+        self.assertEqual(raised.exception.code, "invalid-device-id")
+
     def test_sync_writes_private_markdown_without_raw_note_id_in_metadata(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             directory = pathlib.Path(temporary_directory)
