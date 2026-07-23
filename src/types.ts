@@ -39,3 +39,7 @@ export interface KeepNote {
 export interface WorkspaceKeepPreferences {
   googleClientId: string;
 }
+
+export interface PersonalKeepPreferences {
+  personalKeepPythonPath?: string;
+}

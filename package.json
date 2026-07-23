@@ -3,7 +3,7 @@
   "name": "google-keep-search",
   "version": "0.1.0",
   "title": "Google Keep Search",
-  "description": "Search Google Workspace Keep notes from Raycast.",
+  "description": "Search Google Keep notes from Raycast.",
   "icon": "extension-icon.png",
   "author": "giorgio-zamparelli",
   "license": "MIT",
@@ -12,6 +12,16 @@
   ],
   "platforms": [
     "macOS"
+  ],
+  "preferences": [
+    {
+      "name": "personalKeepPythonPath",
+      "title": "Personal Keep Python Executable",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "/opt/homebrew/bin/python3",
+      "description": "Used only by the experimental personal Gmail proof of concept. It must be Python 3.10+ with the README's pinned companion dependencies."
+    }
   ],
   "commands": [
     {
@@ -38,6 +48,28 @@
           "required": false
         }
       ]
+    },
+    {
+      "name": "search-personal-google-keep-notes",
+      "title": "Search Personal Google Keep Notes",
+      "subtitle": "Google Keep · Experimental",
+      "description": "Search personal Gmail Keep notes through a local, unofficial gkeepapi companion.",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "text",
+          "placeholder": "Search notes",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "setup-personal-google-keep",
+      "title": "Set up Personal Google Keep POC",
+      "subtitle": "Google Keep · Experimental",
+      "description": "Set up the local, opt-in proof of concept for personal Gmail Keep search.",
+      "mode": "view"
     },
     {
       "name": "search-google-keep-in-browser",
@@ -78,6 +110,6 @@
     "lint:raycast": "ray lint",
     "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
     "publish": "npx @raycast/api@latest publish",
-    "test": "vitest run"
+    "test": "vitest run && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'personal_keep_bridge_test.py'"
   }
 }

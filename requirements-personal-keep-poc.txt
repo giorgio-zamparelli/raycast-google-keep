@@ -1,0 +1,4 @@
+# Local-only experimental companion. Do not install with sudo.
+gkeepapi==0.17.1
+gpsoauth==2.0.0
+keyring==25.6.0

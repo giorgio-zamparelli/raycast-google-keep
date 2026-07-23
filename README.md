@@ -2,22 +2,74 @@
 
 Search Google Keep without leaving Raycast.
 
-- **Search Workspace Keep Notes** connects to the official, read-only Google Keep API and searches note titles, note text, and checklist items directly in Raycast.
-- **Search Google Keep in Browser** opens Google Keep's own search and works with both personal and Google Workspace accounts.
-- Select a result to read and copy the full note; use the browser action to open the equivalent native Keep search.
+- **Search Workspace Keep Notes** connects to Google's official, read-only Google Keep API and searches note titles, note text, and checklist items directly in Raycast.
+- **Search Personal Google Keep Notes** is an opt-in, local-only, **experimental proof of concept** for personal Gmail accounts. It uses the unsupported `gkeepapi` Android-client protocol.
+- **Search Google Keep in Browser** opens Google Keep's native search and works with both personal and Workspace accounts.
+- Select a result to read and copy the full note; browser actions open the native Keep note or search where available.
 
-## Important account support
+## Account support
 
-Google's official Keep API is an **enterprise Google Workspace API**. It is not available for personal `@gmail.com` accounts, and Google positions its production access model around Workspace administrator approval/domain-wide delegation. This extension deliberately does not use undocumented private APIs, cookies, or browser scraping.
+Google's official Keep API is an enterprise Google Workspace API. It is not available for personal `@gmail.com` accounts. The experimental path exists because `gkeepapi` can communicate with Google's private mobile Keep protocol; it is not a Google-supported integration.
 
-| Account type                                             | Raycast note results   | Browser search |
-| -------------------------------------------------------- | ---------------------- | -------------- |
-| Google Workspace, with administrator-approved API access | Yes                    | Yes            |
-| Personal Google / `@gmail.com`                           | No official API access | Yes            |
+| Account type                                             | Direct Raycast note results                | Browser search |
+| -------------------------------------------------------- | ------------------------------------------ | -------------- |
+| Google Workspace, with administrator-approved API access | Yes — official API                         | Yes            |
+| Personal Google / `@gmail.com`                           | Yes — experimental, local-only private API | Yes            |
 
-The Browser command is the reliable choice for personal Google Keep accounts.
+The browser command is the safest choice for personal Google Keep accounts. The personal-account POC is for local testing only and should not be considered Store-ready.
 
-## Workspace setup
+## Personal Gmail proof of concept
+
+This path deliberately avoids Cloud OAuth. It uses [`gkeepapi`](https://github.com/kiwiz/gkeepapi), which impersonates the Android Keep client and syncs against an undocumented Google endpoint.
+
+Before using it, understand the trade-offs:
+
+- It is unsupported by Google and can break or be revoked without notice.
+- Its **master token has broad Google-account access**; it is not a `keep.readonly` OAuth permission.
+- The companion only implements search and note display, but the underlying credential is more powerful than this code path.
+- No backend, telemetry, cache, cookie extraction, Google password, or MFA code is used. Matching data is held in memory only while the command runs.
+- The token, active account, and a stable Android device ID are stored only in macOS Keychain. They are never stored in Raycast preferences, command arguments, environment variables, files, or this repository.
+
+Use a disposable Google account for initial testing. Do not paste a Google password, an MFA code, or a browser OAuth cookie anywhere in this extension.
+
+### Install the local companion
+
+The POC needs macOS plus Python 3.10 or newer. On this Mac, Homebrew's Python is available at `/opt/homebrew/bin/python3`; use another Python 3.10+ executable if yours differs.
+
+Create an isolated virtual environment and install the pinned dependencies—never use `sudo`:
+
+```bash
+PERSONAL_KEEP_VENV="$HOME/Library/Application Support/Google Keep Search/poc-venv"
+/opt/homebrew/bin/python3 -m venv "$PERSONAL_KEEP_VENV"
+"$PERSONAL_KEEP_VENV/bin/python" -m pip install --upgrade pip
+"$PERSONAL_KEEP_VENV/bin/python" -m pip install -r requirements-personal-keep-poc.txt
+```
+
+Then open Raycast Preferences → Extensions → **Google Keep Search**, and set **Personal Keep Python Executable** to:
+
+```text
+~/Library/Application Support/Google Keep Search/poc-venv/bin/python
+```
+
+Run **Set up Personal Google Keep POC**. Once it reports the prerequisites are ready:
+
+1. Choose **Copy Secure Connect Command**.
+2. Paste and run that command in a Terminal window.
+3. Read the warning and type `I UNDERSTAND`.
+4. Enter your Google email and an already-obtained **gkeepapi master token** at the hidden prompt.
+5. Return to Raycast and choose **Refresh Setup Status**.
+
+The project intentionally does not obtain the token for you. Follow the [gkeepapi authentication documentation](https://gkeepapi.readthedocs.io/en/latest/) at your own risk; the token must be a master token, not a raw browser OAuth cookie.
+
+To remove local access, run **Set up Personal Google Keep POC** and choose **Disconnect Personal Keep**. This deletes exactly the POC's Keychain items. If a token may have leaked, also revoke or secure the account through Google Account security controls.
+
+### Searching personal notes
+
+Run **Search Personal Google Keep Notes** and type a query such as `DodoDentist LLC`. The local companion refreshes from Keep, performs case-insensitive matching over title and text locally, returns only result previews to Raycast, and fetches full note text only after you select a result.
+
+Set this command as a Raycast fallback command after setup if you want an unmatched root search such as `DodoDentist LLC` to open the matching personal notes.
+
+## Workspace setup (official API)
 
 The Workspace command requests exactly one scope: `https://www.googleapis.com/auth/keep.readonly`. It cannot write, delete, or change the sharing of a note.
 
@@ -35,11 +87,7 @@ Raycast uses PKCE and stores OAuth tokens in the system keychain. The extension 
 
 Raycast provides an OAuth helper for Google, but it does not provide a shared Google OAuth application for third-party extensions. Google requires an OAuth client appropriate to the requested scopes, so each organization/user supplies its own client ID. No client secret is needed for the iOS/PKCE flow.
 
-## Searching from Raycast
-
-Run **Search Workspace Keep Notes** and type a query such as `DodoDentist`. The extension downloads the available note pages for that command run and filters them locally, because Google's `notes.list` endpoint does not offer a full-text query filter.
-
-Raycast extensions cannot add live third-party records directly to the root-search result list. To get close to the desired keyboard flow, set **Search Workspace Keep Notes** as a Raycast fallback command. Then an unmatched root-search query such as `DodoDentist` is passed into the extension and opens the matching note list. You can also invoke the command normally and enter the query in its optional argument.
+## Browser search
 
 For a fast, no-auth launcher, invoke **Search Google Keep in Browser** with a query. It opens Google Keep's native search URL in your default browser, where your existing Google session applies.
 
@@ -60,20 +108,21 @@ npm run lint:raycast
 npm run build
 ```
 
-`npm run lint:raycast` and `npm run build` also validate the `author` field against Raycast. The initial value follows the GitHub owner; update it to your Raycast username if they differ before a Store submission. To publish to the Raycast Store, use `npm run publish`; Raycast will guide you through creating a submission to its extension repository.
+`npm run lint:raycast` and `npm run build` also validate the `author` field against Raycast. The initial value follows the GitHub owner; update it to your Raycast username if they differ before a Store submission. Do not submit the personal Gmail POC to the Raycast Store without a separate security and policy review.
 
 ## Privacy and security
 
-- Only the `keep.readonly` Google scope is requested for Workspace search.
-- OAuth tokens are handled by Raycast's built-in OAuth flow and stored in the system keychain.
-- Note text is held in memory only while the command runs. It is not sent to a service operated by this project.
+- The official Workspace command requests only `keep.readonly`.
+- The personal Gmail POC never receives a password, MFA code, browser cookie, or token through Raycast; its Terminal-only companion writes the master token directly to macOS Keychain.
+- Personal-search previews contain only title, a short snippet, metadata, and a Keep URL. Full text is fetched on explicit selection and never cached.
 - The browser-search command never requests OAuth access.
 
 ## Limitations
 
-- Personal Google accounts do not have supported Google Keep API access.
-- The Google Keep API does not expose a documented direct web URL for an individual note, so the browser action opens the equivalent Keep search rather than constructing an unsupported note deep link.
-- Attachments, labels, colors, reminders, and archived notes are outside this first search-focused release.
+- Personal Gmail access depends on an undocumented API and a broad master token; it is not a supported Google integration.
+- The POC uses a private sync endpoint, which is a POST even when this implementation submits no note changes. Treat its behavior as read-only by convention, not by permission scope.
+- Attachments, labels, colors, reminders, and archived-note controls are outside this first search-focused release.
+- Raycast extensions cannot add live third-party records directly to the root-search result list. A fallback command is the closest supported keyboard flow.
 
 Google Keep and Google Workspace are trademarks of Google LLC. This project is independent and is not affiliated with or endorsed by Google or Raycast.
 
