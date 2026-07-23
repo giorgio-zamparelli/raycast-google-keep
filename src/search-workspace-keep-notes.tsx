@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, LaunchProps, List, openExtensionPreferences } from "@raycast/api";
+import { Action, ActionPanel, Icon, LaunchProps, List, openCommandPreferences } from "@raycast/api";
 import { getAccessToken, usePromise, withAccessToken } from "@raycast/utils";
 import { useMemo, useState } from "react";
 import { GoogleKeepApiError, listGoogleKeepNotes } from "./keep";
@@ -91,7 +91,7 @@ function LoadError({ query, error, onRetry }: { error: Error; onRetry: () => voi
         actions={
           <ActionPanel>
             <Action title="Try Again" icon={Icon.ArrowClockwise} onAction={onRetry} />
-            <Action title="Open Extension Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
+            <Action title="Open Command Preferences" icon={Icon.Gear} onAction={openCommandPreferences} />
             <Action.OpenInBrowser title="Search in Google Keep Instead" url={googleKeepSearchUrl(query)} />
           </ActionPanel>
         }

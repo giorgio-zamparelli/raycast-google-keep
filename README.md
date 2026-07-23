@@ -26,8 +26,8 @@ The Workspace command requests exactly one scope: `https://www.googleapis.com/au
 3. Create an OAuth client ID:
    - Application type: **iOS**
    - Bundle ID: **`com.raycast`**
-4. Copy its client ID (for example, `123456789-abc.apps.googleusercontent.com`) into Raycast's **Google Keep Search** extension preferences.
-5. Run **Search Workspace Keep Notes**, then complete the native Raycast/Google OAuth flow.
+4. Run **Search Workspace Keep Notes** in Raycast. On its first run, Raycast opens the command preferences; paste the client ID there (for example, `123456789-abc.apps.googleusercontent.com`).
+5. Run the command again, then complete the native Raycast/Google OAuth flow.
 
 Raycast uses PKCE and stores OAuth tokens in the system keychain. The extension calls Google directly; it has no backend and does not persist your note content between command runs.
 

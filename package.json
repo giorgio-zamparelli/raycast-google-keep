@@ -13,16 +13,6 @@
   "platforms": [
     "macOS"
   ],
-  "preferences": [
-    {
-      "name": "googleClientId",
-      "title": "Google OAuth Client ID",
-      "type": "textfield",
-      "required": false,
-      "placeholder": "123456789.apps.googleusercontent.com",
-      "description": "Required only for the Workspace API command. Create an iOS client with bundle ID com.raycast; see the README."
-    }
-  ],
   "commands": [
     {
       "name": "search-workspace-keep-notes",
@@ -30,6 +20,16 @@
       "subtitle": "Google Keep",
       "description": "Search Google Workspace Keep notes using Google's official read-only API.",
       "mode": "view",
+      "preferences": [
+        {
+          "name": "googleClientId",
+          "title": "Google OAuth Client ID",
+          "type": "textfield",
+          "required": true,
+          "placeholder": "123456789.apps.googleusercontent.com",
+          "description": "Create an iOS client with bundle ID com.raycast; see the README."
+        }
+      ],
       "arguments": [
         {
           "name": "query",

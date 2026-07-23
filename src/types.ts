@@ -36,6 +36,6 @@ export interface KeepNote {
   updatedAt?: string;
 }
 
-export interface ExtensionPreferences {
+export interface WorkspaceKeepPreferences {
   googleClientId: string;
 }

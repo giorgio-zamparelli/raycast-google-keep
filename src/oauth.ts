@@ -1,6 +1,6 @@
 import { getPreferenceValues } from "@raycast/api";
 import { OAuthService } from "@raycast/utils";
-import type { ExtensionPreferences } from "./types";
+import type { WorkspaceKeepPreferences } from "./types";
 
 const GOOGLE_KEEP_READONLY_SCOPE = "https://www.googleapis.com/auth/keep.readonly";
 
@@ -9,7 +9,7 @@ let googleKeepOAuth: OAuthService | undefined;
 export function googleKeep(): OAuthService {
   if (googleKeepOAuth) return googleKeepOAuth;
 
-  const { googleClientId } = getPreferenceValues<ExtensionPreferences>();
+  const { googleClientId } = getPreferenceValues<WorkspaceKeepPreferences>();
   const clientId = googleClientId?.trim();
 
   if (!clientId) {
